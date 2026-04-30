@@ -4,6 +4,7 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 load_dotenv()
+import json
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -46,6 +47,7 @@ def jake_response(user_message):
     chat = client.chat.completions.create(model="llama-3.3-70b-versatile", messages=messages)
     reply = chat.choices[0].message.content
     conversation_history.append({"role": "assistant", "content": reply})
+    save_history()
     return reply
 
 @bot.event
@@ -67,4 +69,17 @@ async def reset(ctx):
     conversation_history.clear()
     await ctx.send("Memory cleared. Fresh start.")
 
+def load_history():
+    global conversation_history
+    try:
+        with open("conversation_history.json", "r") as f:
+            conversation_history = json.load(f)
+    except FileNotFoundError:
+        conversation_history = []
+
+def save_history():
+    with open("conversation_history.json", "w") as f:
+        json.dump(conversation_history, f)
+
+load_history()
 bot.run(os.getenv('DISCORD_TOKEN'))
